@@ -5,28 +5,50 @@ import org.jgap.impl.NumberGene
 import org.jgap.impl.DoubleGene
 import org.jgap.impl.DefaultConfiguration
 import org.jgap.Genotype
+import trainbot.TrainStoopidbot
+import org.jgap.impl.IntegerGene
+import org.jgap.event.EventManager
+import org.jgap.event.GeneticEvent
+import org.jgap.impl.BestChromosomesSelector
+import org.jgap.Population
+import main.ConfHolder$
+import org.jgap.Gene
+import main.ConfHolder$
 object Main {
 
   def main(args: Array[String]): Unit = {
-    val conf=new DefaultConfiguration
-    val fitfunc=new RobotFitnessFunction
-    	
+    val p=new Population(ConfHolder.conf)
+    
+  evolvePop(p)
+    System.exit(0)
+
+  }
+  def evolvePop(p:Population)={
+    
+		  
+    val conf = ConfHolder.conf 
+    println(conf)
+    val em = EventManagerHolder.eventManager
+    val fitfunc = new RobotFitnessFunction(new Tester())
     conf.setFitnessFunction(fitfunc)
-    println(conf.getFitnessFunction())
-    val genes=for(i<-1 to 5) yield new DoubleGene(conf,0,i)
-    val chromo=new RobotChromosome(conf,genes.toArray)
+    val genes = genesDefinition
+    val chromo = new RobotChromosome(conf, genes.toArray)
+    
     conf.setSampleChromosome(chromo)
-    conf.setPopulationSize(200)
-    val pop=Genotype.randomInitialGenotype(conf)
-    pop.evolve(100)
-    
+    conf.setPopulationSize(2)
+
+    val pop = Genotype.randomInitialGenotype(conf)
+    em.addEventListener(GeneticEvent.GENOTYPE_EVOLVED_EVENT, new EvolutionListener)
+
+    pop.evolve(3)
     val best=pop.getFittestChromosome()
+    println(best.getApplicationData())
     
-    
-    println(best.getGene(0))
+  }
+  def genesDefinition: IndexedSeq[Gene]={
+    for (i <- 1 to 6) yield new IntegerGene(ConfHolder.conf, 0, 30)
     
     
   }
-
 }
   
