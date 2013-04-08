@@ -41,11 +41,11 @@ public class TrainStoopidbot extends AdvancedRobot {
 	private void tuneToChromosomeFromFile() {
 		//get the Chromosome from the ChromoHolder singleton
 		IChromosome chromo = ChromoHolder.getChromo();
-		IntegerGene turnGene = (IntegerGene) chromo.getGene(0);
+		IntegerGene scanGene = (IntegerGene) chromo.getGene(0);
 		IntegerGene wallGene = (IntegerGene) chromo.getGene(1);
 		IntegerGene fireGene = (IntegerGene) chromo.getGene(2);
 		IntegerGene strafingGene = (IntegerGene) chromo.getGene(3);
-		IntegerGene scanGene = (IntegerGene) chromo.getGene(4);
+		IntegerGene turnGene = (IntegerGene) chromo.getGene(4);
 		IntegerGene limitGene = (IntegerGene) chromo.getGene(5);
 		
 		turnRemain = (Integer) turnGene.getAllele();
@@ -54,7 +54,7 @@ public class TrainStoopidbot extends AdvancedRobot {
 		strafingConstant = (Integer) strafingGene.getAllele();;
 		initScanDegree = (Integer) scanGene.getAllele();;
 		limitMiss = (Integer) limitGene.getAllele();;
-
+		assert(turnRemain<=50);
 	}
 
 	private int turnRemain = 0;

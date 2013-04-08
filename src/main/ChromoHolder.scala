@@ -11,20 +11,9 @@ object ChromoHolder {
   def setChromo(c: Chromosome) = {
     chromosome = c
   }
-  def getChromo() = chromosome
-
+  def getChromo() = {
+    println(chromosome.size())
+    chromosome
+  }
 }
 
-//Singleton for Global EventManager
-object EventManagerHolder {
-  private var _eventManager=new EventManager
-  def eventManager=_eventManager
-  
-
-}
-object ConfHolder{
-   private var _conf: Configuration = null
-  def setConf(c: Configuration) = { _conf = c }
-	def conf:Configuration= {if(_conf ==null) _conf= new DefaultConfiguration; _conf}
-  
-}
