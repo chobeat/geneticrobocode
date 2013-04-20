@@ -5,7 +5,7 @@ object Toy{
   
 def main(args: Array[String]): Unit = {   
 
-		RoboRepo.engine.getLocalRepository() foreach(x=>println(x.getName()))
+		RoboRepo.engine.getLocalRepository("trainbot.Kutozov*, sample.SittingDuck") foreach(x=>println(x.getName()))
 		
 }
   

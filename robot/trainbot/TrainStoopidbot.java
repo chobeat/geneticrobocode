@@ -37,10 +37,13 @@ public class TrainStoopidbot extends AdvancedRobot {
 	public TrainStoopidbot() {
 
 	}
+	
+	public void dummy(){}
+	
 	//set the parameters for the robot, reading from a Chromosome
-	private void tuneToChromosomeFromFile() {
+	public void tuneToChromosomeFromFile(IChromosome chromo) {
 		//get the Chromosome from the ChromoHolder singleton
-		IChromosome chromo = ChromoHolder.getChromo();
+	
 		IntegerGene scanGene = (IntegerGene) chromo.getGene(0);
 		IntegerGene wallGene = (IntegerGene) chromo.getGene(1);
 		IntegerGene fireGene = (IntegerGene) chromo.getGene(2);
@@ -54,9 +57,10 @@ public class TrainStoopidbot extends AdvancedRobot {
 		strafingConstant = (Integer) strafingGene.getAllele();;
 		initScanDegree = (Integer) scanGene.getAllele();;
 		limitMiss = (Integer) limitGene.getAllele();;
-		assert(turnRemain<=50);
-	}
+		
 
+	}
+	
 	private int turnRemain = 0;
 	private int wallMargin = 0;
 	private int fireDistance = 0;
@@ -77,7 +81,7 @@ public class TrainStoopidbot extends AdvancedRobot {
 	private boolean stop = false;
 
 	public void run() {
-		tuneToChromosomeFromFile();
+		tuneToChromosomeFromFile( ChromoHolder.getChromo());
 
 		setBodyColor(Color.red);
 		setGunColor(Color.blue);

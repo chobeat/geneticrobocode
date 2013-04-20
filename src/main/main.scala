@@ -20,40 +20,70 @@ import org.jgap.IChromosome
 import scala.collection.mutable.ListBuffer
 import org.jgap.NaturalSelector
 import scala.util.Random
+import org.jgap.xml.XMLManager
+import java.io.FileWriter
+import org.jgap.xml.XMLDocumentBuilder
+import org.jgap.data.DataTreeBuilder
+import org.w3c.dom.Document
+import java.io.File
+import java.io.FileReader
+import java.io.InputStream
+import java.io.FileInputStream
+import scala.xml.XML
+import java.util.Date
+import org.jgap.impl.WeightedRouletteSelector
 object Main {
+  def chromesDir = "generatedChromosomes"
+  def fs = new FS(chromesDir)
+  def MAX_LOCAL_POP = 10
 
+  def POP_SIZE = 1
+  val testers = List(
+
+    (new MediumTester, 1),
+    (new HardTester, 1),
+    (new MediumTester, 1))
   def main(args: Array[String]): Unit = {
-    def POP_SIZE = 10
-    val testers = List(
+    /*  val best = breed(testers, POP_SIZE)
+   fs.storeChromo(best)
+     */
+    expandLocalChromes()
 
-      (new MediumTester, 10),
-      (new HardTester, 50),
-      (new MediumTester, 10))
-    val best = breed(testers, POP_SIZE)
-    println(best)
     System.exit(0)
 
   }
 
-  def breed(funcList: List[(Tester, Int)], popSize: Int): IChromosome = {
-    var best: Array[IChromosome] = null
-    		println("sss")
-    /*For every Tester, i pick the best chromosome for the previous evolution and put it in the new genotype
+  def expandLocalChromes() {
+
+    while (fs.countChromes() < MAX_LOCAL_POP) {
+      val best = breed(testers, POP_SIZE, fs.getAllGeneratedChromes())
+      fs.storeChromo(best)
+    }
+
+  }
+
+  def breed(funcList: List[(Tester, Int)], popSize: Int, chromePop: Array[IChromosome] = null): IChromosome = {
+    var best: Array[IChromosome] = chromePop
+    /*For every Tester, i pick the best cdef a:Int=get
+  hromosome for the previous evolution and put it in the new genotype
     *The new genotype is filled with random chromosomes
     *In the first run, it's populated with random chromosomes 
     */
+
     for ((func, iterations) <- funcList) {
       Configuration.reset()
-      val conf: Configuration = my_conf(new RobotFitnessFunction(func), popSize)
+
+      val conf: Configuration = new CustomConf(new RobotFitnessFunction(func), popSize)
+
       val genotype = best match {
         case (null) => Genotype.randomInitialGenotype(conf)
+        case (Array()) => Genotype.randomInitialGenotype(conf)
         case (_) => new Genotype(conf, new Population(conf, best.toArray))
       }
       genotype.evolve(iterations)
       best = toChromoArray(genotype)
 
     }
-
     best(0)
 
   }
@@ -65,44 +95,66 @@ object Main {
     l.slice(0, 4).toArray
 
   }
-  //creates a new configuration given a fitness function
-  def my_conf(fitFunc: FitnessFunction, popSize: Int): Configuration = {
-    
-    
-    val conf = new DefaultConfiguration
-    conf.setName(Random.nextInt().toString)
-    conf.setMinimumPopSizePercent(25)
-    conf.setFitnessFunction(fitFunc)
-    conf.setKeepPopulationSizeConstant(true)
-    conf.setPopulationSize(popSize)
-    val genes = genesDefinition(conf)
-    val chromo = new RobotChromosome(conf, genes.toArray)
-    conf.setSampleChromosome(chromo)
-   
-    conf
+
+}
+
+class FS(chromesDir: String) {
+  val dir = new File(chromesDir)
+  val conf = dummyconf.get
+  def storeChromo(c: IChromosome) {
+
+    val builder = new XMLDocumentBuilder
+    val tree = DataTreeBuilder.getInstance()
+    val doc = tree.representChromosomeAsDocument(c)
+    val xmldoc = builder.buildDocument(doc)
+    if (!dir.exists())
+      dir.mkdir()
+
+    val now = new Date
+    XMLManager.writeFile(xmldoc.asInstanceOf[Document], new File("%s/%s.chr".format(chromesDir, now.getTime())))
+
   }
 
-  def genesDefinition(conf: Configuration): IndexedSeq[Gene] = {
+  def hasExt(f: File, ext: String): Boolean = f.getName().split('.').last == ext
 
-    def geneconf = Array(
-      //scanDegree gene 
-      new IntegerGene(conf, 0, 360),
+  def countChromes(): Int = { dir.listFiles().filter(x => hasExt(x, "chr")).length }
 
-      //wall margin
-      new IntegerGene(conf, 1, 200),
+  def mergeHistory() {
+    val pop = new Genotype(conf, getAllGeneratedChromes())
 
-      //fireDistance
-      new IntegerGene(conf, 100, 1000),
+    val builder = new XMLDocumentBuilder
+    val tree = DataTreeBuilder.getInstance()
+    val doc = tree.representGenotypeAsDocument(pop)
+    val xmldoc = builder.buildDocument(doc)
+    if (!dir.exists())
+      dir.mkdir()
 
-      //strafing
-      new IntegerGene(conf, 100, 300),
-      //turn remain
-      new IntegerGene(conf, 1, 50),
+    val now = new Date
+    XMLManager.writeFile(xmldoc.asInstanceOf[Document], new File("%s/%d-%s.mer".format(chromesDir, pop.getPopulation().size, now.getTime())))
 
-      //limitMiss
-      new IntegerGene(conf, 1, 15))
-    geneconf
+  }
+  def getAllGeneratedChromes(): Array[IChromosome] = {
+    if (!dir.isDirectory()) {
+      Array()
+
+    }
+
+    val list = for (f: File <- dir.listFiles() if hasExt(f, "chr")) yield XMLManager.getChromosomeFromDocument(conf, XMLManager.readFile(f))
+
+    list.toArray
+
   }
 
 }
+
+object dummyconf {
+  val c = new DefaultConfiguration();
+
+  c.setSampleChromosome(new RobotChromosome(c, GenesHolder.genesDefinition(c)));
+  c.setFitnessFunction(new RobotFitnessFunction(new MediumTester))
+  c.setPopulationSize(1)
+  def get(): Configuration = c
+
+}
+
   
