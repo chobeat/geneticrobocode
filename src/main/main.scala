@@ -35,9 +35,9 @@ import org.jgap.impl.WeightedRouletteSelector
 object Main {
   def chromesDir = "generatedChromosomes"
   def fs = new FS(chromesDir)
-  def MAX_LOCAL_POP = 10
+  def MAX_LOCAL_POP = 15
 
-  def POP_SIZE = 1
+  def POP_SIZE = 10
   val testers = List(
 
     (new MediumTester, 1),
@@ -48,7 +48,7 @@ object Main {
    fs.storeChromo(best)
      */
     expandLocalChromes()
-
+    
     System.exit(0)
 
   }
@@ -57,12 +57,13 @@ object Main {
 
     while (fs.countChromes() < MAX_LOCAL_POP) {
       val best = breed(testers, POP_SIZE, fs.getAllGeneratedChromes())
-      fs.storeChromo(best)
+      for(i<-best)fs.storeChromo(i)
+      
     }
 
   }
 
-  def breed(funcList: List[(Tester, Int)], popSize: Int, chromePop: Array[IChromosome] = null): IChromosome = {
+  def breed(funcList: List[(Tester, Int)], popSize: Int, chromePop: Array[IChromosome] = null): Array[IChromosome] = {
     var best: Array[IChromosome] = chromePop
     /*For every Tester, i pick the best cdef a:Int=get
   hromosome for the previous evolution and put it in the new genotype
@@ -72,7 +73,6 @@ object Main {
 
     for ((func, iterations) <- funcList) {
       Configuration.reset()
-
       val conf: Configuration = new CustomConf(new RobotFitnessFunction(func), popSize)
 
       val genotype = best match {
@@ -80,12 +80,12 @@ object Main {
         case (Array()) => Genotype.randomInitialGenotype(conf)
         case (_) => new Genotype(conf, new Population(conf, best.toArray))
       }
+      genotype.fillPopulation(POP_SIZE)
       genotype.evolve(iterations)
       best = toChromoArray(genotype)
 
     }
-    best(0)
-
+    (best(0)::best(1)::best(2)::List()).toArray
   }
 
   def toChromoArray(genotype: Genotype): Array[IChromosome] = {
