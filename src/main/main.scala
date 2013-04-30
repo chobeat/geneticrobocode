@@ -40,30 +40,51 @@ object Main {
   def POP_SIZE = 10
   val testers = List(
 
-    (new MediumTester, 1),
-    (new HardTester, 1),
-    (new MediumTester, 1))
+    (new MediumTester, 15),
+    (new SniperTester,55),	
+    (new HardTester, 15)
+    )
+  val finalTesters=List(
+    (new SniperTester,50),
+    
+      (new HardTester,25)
+    )
+  
+  
+    
   def main(args: Array[String]): Unit = {
     /*  val best = breed(testers, POP_SIZE)
    fs.storeChromo(best)
      */
     expandLocalChromes()
+    val best=finalEvolution().asInstanceOf[Chromosome]
+    fs.storeChromo(best,"best")
+    val t=new Tester(RoboRepo.engine.getLocalRepository("ab.DengerousRoBatra*"),51)
+    val obs=new BattleObserver(best)
+    t.start_test(best,obs)
+    t.printresults(obs.results)
     
     System.exit(0)
 
   }
 
+  def finalEvolution():IChromosome={
+    val geno:Genotype=fs.mergeHistory()
+   val f= breed(finalTesters,geno.getPopulation().size(),geno.getChromosomes(),1)
+   f(0)
+  }
+  
   def expandLocalChromes() {
 
     while (fs.countChromes() < MAX_LOCAL_POP) {
-      val best = breed(testers, POP_SIZE, fs.getAllGeneratedChromes())
+      val best = breed(testers, POP_SIZE, Array())
       for(i<-best)fs.storeChromo(i)
       
     }
 
   }
 
-  def breed(funcList: List[(Tester, Int)], popSize: Int, chromePop: Array[IChromosome] = null): Array[IChromosome] = {
+  def breed(funcList: List[(Tester, Int)], popSize: Int, chromePop: Array[IChromosome] = null,bestSize:Int=3): Array[IChromosome] = {
     var best: Array[IChromosome] = chromePop
     /*For every Tester, i pick the best cdef a:Int=get
   hromosome for the previous evolution and put it in the new genotype
@@ -85,7 +106,11 @@ object Main {
       best = toChromoArray(genotype)
 
     }
-    (best(0)::best(1)::best(2)::List()).toArray
+    if(bestSize>=best.size)
+    (for(i<-0 to bestSize)yield best(i)).toArray
+    else
+      best.toArray
+    
   }
 
   def toChromoArray(genotype: Genotype): Array[IChromosome] = {
@@ -101,7 +126,7 @@ object Main {
 class FS(chromesDir: String) {
   val dir = new File(chromesDir)
   val conf = dummyconf.get
-  def storeChromo(c: IChromosome) {
+  def storeChromo(c: IChromosome,label:String="") {
 
     val builder = new XMLDocumentBuilder
     val tree = DataTreeBuilder.getInstance()
@@ -111,15 +136,15 @@ class FS(chromesDir: String) {
       dir.mkdir()
 
     val now = new Date
-    XMLManager.writeFile(xmldoc.asInstanceOf[Document], new File("%s/%s.chr".format(chromesDir, now.getTime())))
+    XMLManager.writeFile(xmldoc.asInstanceOf[Document], new File("%s/%s%s.chr".format(chromesDir,label, now.getTime())))
 
   }
 
   def hasExt(f: File, ext: String): Boolean = f.getName().split('.').last == ext
 
   def countChromes(): Int = { dir.listFiles().filter(x => hasExt(x, "chr")).length }
-
-  def mergeHistory() {
+  
+  def mergeHistory():Genotype= {
     val pop = new Genotype(conf, getAllGeneratedChromes())
 
     val builder = new XMLDocumentBuilder
@@ -130,7 +155,9 @@ class FS(chromesDir: String) {
       dir.mkdir()
 
     val now = new Date
-    XMLManager.writeFile(xmldoc.asInstanceOf[Document], new File("%s/%d-%s.mer".format(chromesDir, pop.getPopulation().size, now.getTime())))
+    val f=new File("%s/%d-%s.mer".format(chromesDir, pop.getPopulation().size, now.getTime()))
+    XMLManager.writeFile(xmldoc.asInstanceOf[Document], f)
+    pop
 
   }
   def getAllGeneratedChromes(): Array[IChromosome] = {

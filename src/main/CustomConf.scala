@@ -22,8 +22,8 @@ class CustomConf(fitFunc: FitnessFunction, popSize: Int) extends Configuration()
   println(getNaturalSelectors(true).size())
 
   addGeneticOperator(new org.jgap.impl.TwoWayMutationOperator(this, 3))
-  addGeneticOperator(new CustomAverageOperator(this, 0.75, this.popSize / 3))
-  addNaturalSelector(new BestChromosomesSelector(this), true)
+  addGeneticOperator(new CustomAverageOperator(this, 0.25, this.popSize / 3))
+  addNaturalSelector(new BestChromosomesSelector(this,0.20), true)
 
 }
 

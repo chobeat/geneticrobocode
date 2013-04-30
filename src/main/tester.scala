@@ -23,11 +23,13 @@ class EasyTester() extends Tester(Array(RoboRepo.getRandomRobot(RoboRepo.engine)
 class MediumTester() extends Tester(RoboRepo.engine.getLocalRepository("sample.VelociRobot")){}
 class HardTester() extends Tester(RoboRepo.engine.getLocalRepository("ab.DengerousRoBatra*")){}
 
-class Tester(rounds: Int, x: Int, y: Int,sparringPartners:Array[RobotSpecification],name:Int=Random.nextInt(50)) {
-  def this(s:Array[RobotSpecification]) = {
-    this(5, 800, 600, s)
+class SniperTester() extends Tester(RoboRepo.engine.getLocalRepository("sniper1.Sniper1*")){}
+class RaptureTester() extends Tester(RoboRepo.engine.getLocalRepository("rapture.Rapture*")){}
 
-  }
+
+
+class Tester(sparringPartners:Array[RobotSpecification],rounds: Int=5, x: Int=800, y: Int=600,name:Int=Random.nextInt(50)) {
+  
   
   val engine= new RobocodeEngine
   val battlefield = new BattlefieldSpecification(x, y)
@@ -35,13 +37,12 @@ class Tester(rounds: Int, x: Int, y: Int,sparringPartners:Array[RobotSpecificati
   val robots = myRobot ++ sparringPartners
  
 
-  def start_test(chromosome: Chromosome): Int = {
+  def start_test(chromosome: Chromosome,obs_t:BattleObserver=null): Int = {
 	writeChromosome(chromosome)
     val battleSpec=new BattleSpecification(rounds,battlefield,robots)
     
-    val obs = new BattleObserver(chromosome)
-	
-	engine.addBattleListener(obs)
+    	val obs = if(obs_t!=null)obs_t else new BattleObserver(chromosome)
+    engine.addBattleListener(obs)
     engine.runBattle(battleSpec, true)
     engine.close()
     val reward = calcReward(obs)
@@ -51,12 +52,20 @@ class Tester(rounds: Int, x: Int, y: Int,sparringPartners:Array[RobotSpecificati
 
   }
   //reward value calculator
-  def calcReward(obs: BattleObserver): Int = { val score=obs.results(0).getScore()
-		
-    if(obs.results(0).getRank()==1)
-		    (1.4*score).toInt
+  def calcReward(obs: BattleObserver): Int = { 
+    val result=(obs.results.filter(x=>x.getTeamLeaderName().contains("Train")))(0)
+    val name=result.getTeamLeaderName()
+    
+    assert(name.contains("Train"))
+    
+    val score=result.getScore()+result.getSurvival()	
+   
+    
+	val square = Math.pow(score,2)
+	if(result.getRank()==1)
+		    (1.3*square).toInt
 		    else
-		      score
+		      square.toInt
     
   }
   //print all the robots of the tester
@@ -65,8 +74,8 @@ class Tester(rounds: Int, x: Int, y: Int,sparringPartners:Array[RobotSpecificati
 
   def printresults(results: Array[BattleResults]) {
     for (result <- results) {
-      println("  " + result.getTeamLeaderName() + ": " + result.getScore());
-      println(result.getLastSurvivorBonus())
+      println("  " + result.getTeamLeaderName() + ": " + result.getRank());
+      println(result.getScore())
       println(result.getSurvival())
     }
 

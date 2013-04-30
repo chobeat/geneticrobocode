@@ -12,7 +12,6 @@ object ChromoHolder {
     chromosome = c
   }
   def getChromo() = {
-    println(chromosome.size())
     chromosome
   }
 }
