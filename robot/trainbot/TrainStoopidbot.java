@@ -21,9 +21,6 @@ import org.jgap.impl.IntegerGene;
 import org.jgap.xml.XMLManager;
 
 import robocode.AdvancedRobot;
-//import robocode.Bullet;
-//import robocode.HitRobotEvent;
-//import robocode.HitWallEvent;
 import robocode.*;
 
 public class TrainStoopidbot extends AdvancedRobot {
@@ -116,7 +113,6 @@ public class TrainStoopidbot extends AdvancedRobot {
 
 	public void onScannedRobot(ScannedRobotEvent e) {
 
-		// tracking nearest enemy
 		if (enemy.none() || e.getDistance() < enemy.getDistance() - 70
 				|| e.getName().equals(enemy.getName())) {
 			enemy.update(e, this);

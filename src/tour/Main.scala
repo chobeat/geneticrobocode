@@ -1,25 +1,40 @@
+package tour
+
 import robocode.control.RobocodeEngine
 import scala.collection.JavaConverters._
 import robocode.control.RobotSpecification
 import robocode.control.events.IBattleListener
 import robocode.control.BattleSpecification
 import robocode.control.BattlefieldSpecification
-import com.thoughtworks.xstream.XStream
 import robocode.control.events.BattleErrorEvent
 import robocode.control.events.BattleMessageEvent
 import robocode.control.events.BattleAdaptor
 import robocode.BattleEndedEvent
 import robocode.control.events.BattleCompletedEvent
+import scala.swing.Swing
+import tour.TournamentGUI
+
+
+object Main {
+
+  def main(args: Array[String]): Unit = {
+		  val t=new Tournament
+		  val GUI=new TournamentGUI(t)
+		  GUI.startup(Array())
+  }
+
+
+}
 
 class Tournament {
-
   val engine = new RobocodeEngine
   val robots = engine.getLocalRepository()
   val couples = createCouples(robots.toList)
-
+  
   val battleListener = new TournamentListener(engine)
   engine.addBattleListener(battleListener)
   val battlefieldSpec = new BattlefieldSpecification(800, 600)
+  
   def fight(couple: (RobotSpecification, RobotSpecification)): RobotSpecification = {
     println("Fight between %s and %s".format(couple._1.getName(), couple._2.getName()))
     val battleSpec = new BattleSpecification(1, battlefieldSpec, Array(couple._1, couple._2))
@@ -79,7 +94,6 @@ class TournamentListener(engine: RobocodeEngine) extends BattleAdaptor {
   var winner: RobotSpecification = null
   var first:RobotSpecification=null
   var second:RobotSpecification=null
-  val xstream=new XStream
   override def onBattleError(e: BattleErrorEvent) {println(e.getError())
 	  
     
@@ -92,8 +106,7 @@ class TournamentListener(engine: RobocodeEngine) extends BattleAdaptor {
   }
   
   def logBattle(event:BattleCompletedEvent){
-	  xstream.toXML(3)
-    println()
+	 println()
   }
   
   def determineWinner(e:BattleCompletedEvent){ //follia immonda 
@@ -115,12 +128,3 @@ class TournamentListener(engine: RobocodeEngine) extends BattleAdaptor {
 
 }
 
-object Main {
-
-  def main(args: Array[String]): Unit = {
-    val t = new Tournament
-    println(t.fightStage(t.couples).getName())
-  
-  }
-
-}
